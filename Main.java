@@ -51,8 +51,6 @@ public class Main {
             }
         }
 
-        // ---- Your simulation logic starts here ----
-
         int[] homesList = {1, 0, 1, 0, 1, 0, 1, 0, 1, 0}; // each house's availability (1 occupied, 0 vacant)
         Home availHomes = new Home(homesList);
 
