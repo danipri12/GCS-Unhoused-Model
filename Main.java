@@ -31,11 +31,11 @@ public class Main {
                 boolean jobTraining = scanner.nextBoolean();
                 System.out.println("Are they homeless (true/false)?");
                 boolean homeless = scanner.nextBoolean();
-                scanner.nextLine(); // consume newline
+                scanner.nextLine();
                 agentList.add(new Agent("Agent_" + agentnum, asset, disability, jobTraining, homeless));
             }
         } else if (response.equalsIgnoreCase("all")) {
-            // Ask once, reuse for all agents
+            // ask once, reuse for all agents
             System.out.println("What is the Agent's starting asset amount?");
             int asset = scanner.nextInt();
             System.out.println("Are they disabled (true/false)?");
@@ -44,7 +44,7 @@ public class Main {
             boolean jobTraining = scanner.nextBoolean();
             System.out.println("Are they homeless (true/false)?");
             boolean homeless = scanner.nextBoolean();
-            scanner.nextLine(); // consume newline
+            scanner.nextLine();
 
             for (int agentnum = 1; agentnum <= 10; agentnum++) {
                 agentList.add(new Agent("Agent_" + agentnum, asset, disability, jobTraining, homeless));
@@ -71,14 +71,12 @@ public class Main {
                     for (int house = 0; house < availHomes.length(); house++) {
                         if (availHomes.getHouse(house) == 0 && agentList.get(n).getHomeless() == false) {
                             availHomes.setHouse(house, 1); // set that house to occupied
-                            // agentList.get(n).setHomeless(false); // set agent to not homeless
                         }
                     }
                 } else if (agentAsset >= 10) {
                     for (int house = 0; house < availHomes.length() / 2; house++) { // only look through first half of houses bc those are low income
                         if (availHomes.getHouse(house) == 0 && agentList.get(n).getHomeless() == false) {
                             availHomes.setHouse(house, 1);
-                            // agentList.get(n).setHomeless(false);
                         }
                     }
                 } else {
