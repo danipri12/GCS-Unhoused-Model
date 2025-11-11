@@ -4,14 +4,16 @@ public class Agent{
     boolean jobTraining;
     boolean homeless;
     private String name;
+    boolean everHomeless;
 
     public Agent(String name, int asset, boolean disability, 
-                    boolean jobTraining, boolean homeless){
+                    boolean jobTraining, boolean homeless, boolean everHomeless){
         this.name = name;
         this.asset = asset;
-        this.disability = Math.random()<=0.1;
-        this.jobTraining = Math.random()<=0.51;
-        this.homeless = Math.random()<=0.23;
+        this.disability = disability;
+        this.jobTraining = jobTraining;
+        this.homeless = homeless;
+        this.everHomeless = everHomeless;
     }
 
     public String getAgentName(){
@@ -51,6 +53,10 @@ public class Agent{
     }
 
     public void setHomeless(boolean status){
-        homeless = status; //mayybe change homeless to num (float?), not boolean
+        homeless = status;
+    }
+
+    public boolean getEverHomeless(){
+        return everHomeless;
     }
 }

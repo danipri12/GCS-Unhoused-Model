@@ -32,10 +32,13 @@ public class Main {
                 System.out.println("Are they homeless (true/false)?");
                 boolean homeless = scanner.nextBoolean();
                 scanner.nextLine();
-                agentList.add(new Agent("Agent_" + agentnum, asset, disability, jobTraining, homeless));
+                System.out.println("Were they ever homeless in the past (true/false)?");
+                boolean everHomeless = scanner.nextBoolean();
+                scanner.nextLine();
+                agentList.add(new Agent("Agent_" + agentnum, asset, disability, jobTraining, homeless, everHomeless));
             }
         } else if (response.equalsIgnoreCase("all")) {
-            // ask once, reuse for all agents
+            //ask once, reuse for all agents
             System.out.println("What is the Agent's starting asset amount?");
             int asset = scanner.nextInt();
             System.out.println("Are they disabled (true/false)?");
@@ -45,13 +48,17 @@ public class Main {
             System.out.println("Are they homeless (true/false)?");
             boolean homeless = scanner.nextBoolean();
             scanner.nextLine();
+            System.out.println("Were they ever homeless in the past (true/false)?");
+            boolean everHomeless = scanner.nextBoolean();
+            scanner.nextLine();
 
             for (int agentnum = 1; agentnum <= 10; agentnum++) {
-                agentList.add(new Agent("Agent_" + agentnum, asset, disability, jobTraining, homeless));
+                agentList.add(new Agent("Agent_" + agentnum, asset, disability, jobTraining, homeless, everHomeless));
             }
         }
 
-        int[] homesList = {1, 0, 1, 0, 1, 0, 1, 0, 1, 0}; // each house's availability (1 occupied, 0 vacant)
+        int[] homesList = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // each house's availability (1 occupied, 0 vacant)
+        //possible update, let user input each house's availability ("each"/"all")
         Home availHomes = new Home(homesList);
 
         for (int m = 1; m <= months; m++) {
@@ -69,18 +76,21 @@ public class Main {
                 int agentAsset = agentList.get(n).getAsset();
                 if (agentAsset >= 20) {
                     for (int house = 0; house < availHomes.length(); house++) {
-                        if (availHomes.getHouse(house) == 0 && agentList.get(n).getHomeless() == false) {
+                        if (availHomes.getHouse(house) == 0 && agentList.get(n).getHomeless() == true && !agentList.get(n).getEverHomeless()) {
                             availHomes.setHouse(house, 1); // set that house to occupied
+                            agentList.get(n).setHomeless(false);
                         }
                     }
                 } else if (agentAsset >= 10) {
                     for (int house = 0; house < availHomes.length() / 2; house++) { // only look through first half of houses bc those are low income
-                        if (availHomes.getHouse(house) == 0 && agentList.get(n).getHomeless() == false) {
+                        if (availHomes.getHouse(house) == 0 && agentList.get(n).getHomeless() == true && !agentList.get(n).getEverHomeless()) {
                             availHomes.setHouse(house, 1);
+                            agentList.get(n).setHomeless(false);
                         }
                     }
                 } else {
                     agentList.get(n).setHomeless(true);
+                    availHomes.setHouse(n, 0);
                 }
             }
         }
@@ -88,7 +98,6 @@ public class Main {
         for (Agent ag : agentList) {
             System.out.println("Agent stats: " + ag.getAsset() + " (assets), " + ag.getHomeless() + " (homeless status), " + ag.getDisability() + " (disability status), " + ag.getJobTraining() + " (job training status)");
         }
-
         scanner.close();
     }
 }
