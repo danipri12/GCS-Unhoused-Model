@@ -25,10 +25,10 @@ public class Agent{
     }
 
     public void setAsset(int asset){
-        int delta = (int)(Math.random() * 9) - 2;
+        int delta = (int)(Math.random() * 9) - 2; // randomize the change in the agent's asset (from -2 to 9)
         asset += delta;
         if(getAsset() < 0){
-            asset = 0; //to prevent negative asset values
+            asset = 0; // to prevent negative asset values
         }
 
         if(getDisability() && getAsset() >= 5){
