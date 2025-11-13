@@ -17,10 +17,12 @@ public class Main {
         int months = 12;
         ArrayList<Agent> agentList = new ArrayList<>();
 
+        // ask user to choose between two scenarios: add different inputs for each agent or the same inputs for all agents
         Scanner scanner = new Scanner(System.in);
         System.out.println("Input variables for each agent or have same variables for all? (type each/all)");
         String response = scanner.nextLine();
 
+        // user adds input for each agent, can be different
         if (response.equalsIgnoreCase("each")) {
             for (int agentnum = 1; agentnum <= 10; agentnum++) {
                 System.out.println("What is Agent_" + agentnum + " starting asset amount?");
@@ -37,8 +39,9 @@ public class Main {
                 scanner.nextLine();
                 agentList.add(new Agent("Agent_" + agentnum, asset, disability, jobTraining, homeless, everHomeless));
             }
+
+        // user adds the same input for all agents
         } else if (response.equalsIgnoreCase("all")) {
-            //ask once, reuse for all agents
             System.out.println("What is the Agent's starting asset amount?");
             int asset = scanner.nextInt();
             System.out.println("Are they disabled (true/false)?");
@@ -52,13 +55,13 @@ public class Main {
             boolean everHomeless = scanner.nextBoolean();
             scanner.nextLine();
 
+            // agents are initialized with the specified inputs
             for (int agentnum = 1; agentnum <= 10; agentnum++) {
                 agentList.add(new Agent("Agent_" + agentnum, asset, disability, jobTraining, homeless, everHomeless));
             }
         }
 
         int[] homesList = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // each house's availability (1 occupied, 0 vacant)
-        //possible update, let user input each house's availability ("each"/"all")
         Home availHomes = new Home(homesList);
 
         for (int m = 1; m <= months; m++) {
@@ -76,20 +79,23 @@ public class Main {
                 int agentAsset = agentList.get(n).getAsset();
                 if (agentAsset >= 20) {
                     for (int house = 0; house < availHomes.length(); house++) {
+                        // check that the house is available, the agent is not homeless, and the agent was never homeless in the past
                         if (availHomes.getHouse(house) == 0 && agentList.get(n).getHomeless() == true && !agentList.get(n).getEverHomeless()) {
                             availHomes.setHouse(house, 1); // set that house to occupied
                             agentList.get(n).setHomeless(false);
                         }
                     }
                 } else if (agentAsset >= 10) {
-                    for (int house = 0; house < availHomes.length() / 2; house++) { // only look through first half of houses bc those are low income
+                    for (int house = 0; house < availHomes.length() / 2; house++) { // only look through first half of houses because those are low income
                         if (availHomes.getHouse(house) == 0 && agentList.get(n).getHomeless() == true && !agentList.get(n).getEverHomeless()) {
                             availHomes.setHouse(house, 1);
                             agentList.get(n).setHomeless(false);
                         }
                     }
                 } else {
+                    // if unable to find a home for the agent, set the agent to homeless
                     agentList.get(n).setHomeless(true);
+                    // have agents leave some of the homes each month
                     availHomes.setHouse(n, 0);
                 }
             }
