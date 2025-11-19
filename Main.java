@@ -1,103 +1,144 @@
-import java.util.ArrayList;
-import java.util.Scanner;
-
-/* POSSIBLE ADDITIONS TO MODEL
- * add stigmatizations, so if was homeless at some point then that limits the agent even now - DONE
- * more realistic stats for the availability of a home and assets (based on our research)
- * use disability and jobTraining in the model
- * add more variables to model
- */
-
-/* UPDATES ADDED TO MODEL
- * user input, can change individual agents' assets or input for all
- */
+import java.util.*;
+import java.io.*;
 
 public class Main {
     public static void main(String[] args) {
         int months = 12;
         ArrayList<Agent> agentList = new ArrayList<>();
 
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Input variables for each agent or have same variables for all? (type each/all)");
-        String response = scanner.nextLine();
+        ArrayList<ArrayList<Integer>> assetsByMonth = new ArrayList<>();
+        ArrayList<ArrayList<Boolean>> homelessByMonth = new ArrayList<>();
+        ArrayList<ArrayList<Boolean>> disabilityByMonth = new ArrayList<>();
+        ArrayList<ArrayList<Boolean>> jobTrainingByMonth = new ArrayList<>();
 
-        if (response.equalsIgnoreCase("each")) {
-            for (int agentnum = 1; agentnum <= 10; agentnum++) {
-                System.out.println("What is Agent_" + agentnum + " starting asset amount?");
-                int asset = scanner.nextInt();
-                System.out.println("Are they disabled (true/false)?");
-                boolean disability = scanner.nextBoolean();
-                System.out.println("Do they have job training (true/false)?");
-                boolean jobTraining = scanner.nextBoolean();
-                System.out.println("Are they homeless (true/false)?");
-                boolean homeless = scanner.nextBoolean();
-                scanner.nextLine();
-                System.out.println("Were they ever homeless in the past (true/false)?");
-                boolean everHomeless = scanner.nextBoolean();
-                scanner.nextLine();
-                agentList.add(new Agent("Agent_" + agentnum, asset, disability, jobTraining, homeless, everHomeless));
+        // --- Read agent data from file ---
+        try {
+            BufferedReader br = new BufferedReader(new FileReader("agent_input.txt"));
+            String line = br.readLine(); // skip "each"
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(",");
+                int asset = Integer.parseInt(parts[0]);
+                boolean disability = Boolean.parseBoolean(parts[1]);
+                boolean jobTraining = Boolean.parseBoolean(parts[2]);
+                boolean homeless = Boolean.parseBoolean(parts[3]);
+                boolean everHomeless = Boolean.parseBoolean(parts[4]);
+                agentList.add(new Agent("Agent_" + (agentList.size() + 1),
+                        asset, disability, jobTraining, homeless, everHomeless));
             }
-        } else if (response.equalsIgnoreCase("all")) {
-            //ask once, reuse for all agents
-            System.out.println("What is the Agent's starting asset amount?");
-            int asset = scanner.nextInt();
-            System.out.println("Are they disabled (true/false)?");
-            boolean disability = scanner.nextBoolean();
-            System.out.println("Do they have job training (true/false)?");
-            boolean jobTraining = scanner.nextBoolean();
-            System.out.println("Are they homeless (true/false)?");
-            boolean homeless = scanner.nextBoolean();
-            scanner.nextLine();
-            System.out.println("Were they ever homeless in the past (true/false)?");
-            boolean everHomeless = scanner.nextBoolean();
-            scanner.nextLine();
-
-            for (int agentnum = 1; agentnum <= 10; agentnum++) {
-                agentList.add(new Agent("Agent_" + agentnum, asset, disability, jobTraining, homeless, everHomeless));
-            }
+            br.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
         }
 
-        int[] homesList = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // each house's availability (1 occupied, 0 vacant)
-        //possible update, let user input each house's availability ("each"/"all")
+        int[] homesList = {1,1,1,1,1,1,1,1,1,1};
         Home availHomes = new Home(homesList);
 
+        // --- Simulation loop ---
         for (int m = 1; m <= months; m++) {
-            System.out.println("Month: " + m);
 
-            for (int i = 0; i < agentList.size(); i++) {
-                Agent agentValues = agentList.get(i);
-                agentValues.setAsset(agentValues.getAsset()); // set updated asset based on variables
+            // ➤ Apply monthly asset updates only AFTER month 1
+            if (m > 1) {
+                for (Agent a : agentList) {
+                    a.updateMonthlyAsset();
+                }
             }
 
-            // sort assets by descending order
-            agentList.sort((a, b) -> Integer.compare(b.getAsset(), a.getAsset()));
+            // --- Record month BEFORE sorting ---
+            ArrayList<Integer> monthAssets = new ArrayList<>();
+            ArrayList<Boolean> monthHomeless = new ArrayList<>();
+            ArrayList<Boolean> monthDisability = new ArrayList<>();
+            ArrayList<Boolean> monthJobTraining = new ArrayList<>();
 
+            for (Agent ag : agentList) {
+                monthAssets.add(ag.getAsset());
+                monthHomeless.add(ag.getHomeless());
+                monthDisability.add(ag.getDisability());
+                monthJobTraining.add(ag.getJobTraining());
+            }
+
+            assetsByMonth.add(monthAssets);
+            homelessByMonth.add(monthHomeless);
+            disabilityByMonth.add(monthDisability);
+            jobTrainingByMonth.add(monthJobTraining);
+
+            // --- Now sort agents ONLY for housing logic ---
+            agentList.sort((a,b) -> Integer.compare(b.getAsset(), a.getAsset()));
+
+            // --- Housing logic (unchanged) ---
             for (int n = 0; n < agentList.size(); n++) {
                 int agentAsset = agentList.get(n).getAsset();
                 if (agentAsset >= 20) {
                     for (int house = 0; house < availHomes.length(); house++) {
-                        if (availHomes.getHouse(house) == 0 && agentList.get(n).getHomeless() == true && !agentList.get(n).getEverHomeless()) {
-                            availHomes.setHouse(house, 1); // set that house to occupied
+                        if (availHomes.getHouse(house) == 0 && agentList.get(n).getHomeless() && !agentList.get(n).getEverHomeless()) {
+                            availHomes.setHouse(house,1);
                             agentList.get(n).setHomeless(false);
                         }
                     }
                 } else if (agentAsset >= 10) {
-                    for (int house = 0; house < availHomes.length() / 2; house++) { // only look through first half of houses bc those are low income
-                        if (availHomes.getHouse(house) == 0 && agentList.get(n).getHomeless() == true && !agentList.get(n).getEverHomeless()) {
-                            availHomes.setHouse(house, 1);
+                    for (int house = 0; house < availHomes.length()/2; house++) {
+                        if (availHomes.getHouse(house) == 0 && agentList.get(n).getHomeless() && !agentList.get(n).getEverHomeless()) {
+                            availHomes.setHouse(house,1);
                             agentList.get(n).setHomeless(false);
                         }
                     }
                 } else {
                     agentList.get(n).setHomeless(true);
-                    availHomes.setHouse(n, 0);
+                    availHomes.setHouse(n,0);
                 }
             }
         }
 
-        for (Agent ag : agentList) {
-            System.out.println("Agent stats: " + ag.getAsset() + " (assets), " + ag.getHomeless() + " (homeless status), " + ag.getDisability() + " (disability status), " + ag.getJobTraining() + " (job training status)");
+        // --- CSV Export ---
+        try {
+            // Assets
+            FileWriter fw = new FileWriter("assets.csv");
+            fw.write("Month");
+            for (int a=0; a<agentList.size(); a++) fw.write(",Agent_" + (a+1));
+            fw.write("\n");
+            for (int m=0; m<months; m++) {
+                fw.write("" + (m+1));
+                for (int a=0; a<agentList.size(); a++) fw.write("," + assetsByMonth.get(m).get(a));
+                fw.write("\n");
+            }
+            fw.close();
+
+            // Homeless
+            fw = new FileWriter("homeless.csv");
+            fw.write("Month");
+            for (int a=0; a<agentList.size(); a++) fw.write(",Agent_" + (a+1));
+            fw.write("\n");
+            for (int m=0; m<months; m++) {
+                fw.write("" + (m+1));
+                for (int a=0; a<agentList.size(); a++) fw.write("," + (homelessByMonth.get(m).get(a) ? 1 : 0));
+                fw.write("\n");
+            }
+            fw.close();
+
+            // Disability
+            fw = new FileWriter("disability.csv");
+            fw.write("Month,Disability_Total\n");
+            for (int m=0; m<months; m++) {
+                int totalDisability = 0;
+                for (int a=0; a<agentList.size(); a++)
+                    if (disabilityByMonth.get(m).get(a)) totalDisability++;
+                fw.write((m+1) + "," + totalDisability + "\n");
+            }
+            fw.close();
+
+            // Job Training
+            fw = new FileWriter("jobtraining.csv");
+            fw.write("Month,JobTraining_Total\n");
+            for (int m=0; m<months; m++) {
+                int totalTraining = 0;
+                for (int a=0; a<agentList.size(); a++)
+                    if (jobTrainingByMonth.get(m).get(a)) totalTraining++;
+                fw.write((m+1) + "," + totalTraining + "\n");
+            }
+            fw.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        scanner.close();
     }
 }

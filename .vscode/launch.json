@@ -9,6 +9,20 @@
             "name": "Main",
             "request": "launch",
             "mainClass": "Main",
+            "projectName": "GCS-Unhoused-Model-1_e126b7ef"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "GCS-Unhoused-Model-1_e48881b6"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "Main",
             "projectName": "GCS-Unhoused-Model_823c5892"
         },
         {

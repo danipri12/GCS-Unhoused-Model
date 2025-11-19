@@ -24,21 +24,24 @@ public class Agent{
         return asset;
     }
 
-    public void setAsset(int asset){
-        int delta = (int)(Math.random() * 9) - 2;
-        asset += delta;
-        if(getAsset() < 0){
-            asset = 0; //to prevent negative asset values
+    public void updateMonthlyAsset(){
+        int newAsset = this.asset;
+
+        int delta = (int)(Math.random() * 13) - 6; // random number
+        newAsset += delta;
+
+        if(disability && newAsset >= 5){
+            newAsset -= 5;
+        }
+        if(jobTraining && newAsset >= 0){
+            newAsset += 5;
         }
 
-        if(getDisability() && getAsset() >= 5){
-            asset += -5;
+        if(newAsset < 0) newAsset = 0;
+        if(newAsset > 100) newAsset = 100;
+
+        this.asset = newAsset;  // updates current asset
         }
-        if(getJobTraining() && getAsset() >= 0){
-            asset += 5;
-        }
-        this.asset = asset;
-    }
 
     public boolean getDisability(){
         return disability;
